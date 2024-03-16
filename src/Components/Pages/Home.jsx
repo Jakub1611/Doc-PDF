@@ -1,11 +1,10 @@
 import React, { useState } from "react";
-import styles from "./Logika.module.css";
 
 import Docxtemplater from "docxtemplater";
 import { saveAs } from "file-saver";
 import PizZip from "pizzip";
 import { PDFDocument, StandardFonts } from "pdf-lib";
-function Logika() {
+function Home() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileText, setFileText] = useState("");
   const [EdycjaText, UEditText] = useState("");
@@ -154,4 +153,4 @@ function Logika() {
   );
 }
 
-export default Logika;
+export default Home;
