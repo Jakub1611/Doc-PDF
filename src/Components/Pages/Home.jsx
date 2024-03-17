@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-
+import bgImage from "../../assets/bg.jpg";
 import Docxtemplater from "docxtemplater";
 import { saveAs } from "file-saver";
 import PizZip from "pizzip";
+import "./Home.css";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 function Home() {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -137,18 +138,24 @@ function Home() {
   };
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <input type="file" onChange={handleFileChange} accept=".docx" />
-        <button onClick={handleUpload}>Załaduj</button>
-        <div>
-          <label>
-            <textarea value={EdycjaText} onChange={handleEditableTextChange} />
-          </label>
-        </div>
-        <button onClick={Zapis_Pliku}>Zapisz jako DOCX</button>
-        <button onClick={Zapis_Pliku_PDF}>Zapisz jako PDF</button>
-      </header>
+    <div>
+      <img src={bgImage} className="bg-img" />
+      <div className="App">
+        <header className="App-header">
+          <input type="file" onChange={handleFileChange} accept=".docx" />
+          <button onClick={handleUpload}>Załaduj</button>
+          <div>
+            <label>
+              <textarea
+                value={EdycjaText}
+                onChange={handleEditableTextChange}
+              />
+            </label>
+          </div>
+          <button onClick={Zapis_Pliku}>Zapisz jako DOCX</button>
+          <button onClick={Zapis_Pliku_PDF}>Zapisz jako PDF</button>
+        </header>
+      </div>
     </div>
   );
 }

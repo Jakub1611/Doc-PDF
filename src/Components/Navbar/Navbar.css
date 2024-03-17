@@ -6,7 +6,8 @@ nav {
   position: sticky;
   top: 0;
   padding: 0 70px 0 70px;
-  border-bottom: solid red;
+  z-index: 0;
+  box-shadow: 0px 10px 100px rgb(81, 2, 83);
 }
 
 .title {
@@ -15,6 +16,7 @@ nav {
   font-weight: 600;
   text-decoration: none;
   color: white;
+  text-shadow: 1px 1px 1px black;
 }
 
 nav ul {
