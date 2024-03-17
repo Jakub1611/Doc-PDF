@@ -1,161 +1,87 @@
 import React, { useState } from "react";
-import bgImage from "../../assets/bg.jpg";
-import Docxtemplater from "docxtemplater";
-import { saveAs } from "file-saver";
-import PizZip from "pizzip";
-import "./Home.css";
-import { PDFDocument, StandardFonts } from "pdf-lib";
+import mammoth from "mammoth";
+import parse from "html-react-parser";
+
 function Home() {
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [fileText, setFileText] = useState("");
-  const [EdycjaText, UEditText] = useState("");
+  const [docxContent, setDocxContent] = useState(null);
+  const [plainText, setPlainText] = useState(null);
+  const [keywords, setKeywords] = useState([]);
 
-  const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
+  const onFileUpload = (event) => {
+    console.log("File selected");
+    const reader = new FileReader();
+    let file = event.target.files[0];
+
+    reader.onload = (e) => {
+      console.log("File loaded");
+      const content = e.target.result;
+      mammoth.convertToHtml({ arrayBuffer: content })
+        .then((result) => {
+          setDocxContent(result.value);
+        })
+        .catch((err) => {
+          console.error("Error converting DOCX to HTML:", err); // zabezpieczenie
+        });
+
+      mammoth.extractRawText({ arrayBuffer: content })
+        .then((result) => {
+          console.log("Text extracted");
+          setPlainText(result.value);
+          findKeywords(result.value);
+        })
+        .catch((err) => {
+          console.error("Error extracting plain text from DOCX:", err);
+        });
+    };
+
+    reader.onerror = (err) => console.error(err);
+
+    reader.readAsArrayBuffer(file);
   };
-
-  const handleUpload = async () => {
-    if (selectedFile) {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        const arrayBuffer = event.target.result;
-        const uint8Array = new Uint8Array(arrayBuffer);
-        const zip = new PizZip(uint8Array);
-
-        // Odczytaj plik "document.xml" z wewnątrz pliku ZIP
-        const docXml = zip.file("word/document.xml").asText();
-
-        // Tutaj możesz kontynuować przetwarzanie zawartości "document.xml"
-        const text = extractTextFromXml(docXml);
-        setFileText(text);
-        UEditText(text);
-      };
-      reader.readAsArrayBuffer(selectedFile);
-    }
-  };
-
-  const extractTextFromXml = (xmlString) => {
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlString, "text/xml");
-    const paragraphs = xmlDoc.getElementsByTagName("w:p");
-    let text = "";
-    for (let i = 0; i < paragraphs.length; i++) {
-      const runs = paragraphs[i].getElementsByTagName("w:r");
-      for (let j = 0; j < runs.length; j++) {
-        const textNodes = runs[j].getElementsByTagName("w:t");
-        for (let k = 0; k < textNodes.length; k++) {
-          text += textNodes[k].textContent;
+//funkcja znajdująca słowa
+  const findKeywords = (text) => {
+    const lines = text.split("\n");
+    const extractedKeywords = [];
+//dziele na linie i szukam 
+    lines.forEach((line) => {
+      const index = line.indexOf("...");
+      if (index !== -1) {
+        const keyword = line.substring(0, index).trim();
+        if (keyword !== "") {
+          extractedKeywords.push(keyword);
         }
-        text += "\n";
       }
-    }
-    return text;
+    });
+
+    console.log("Wyrazy przed znacznikiem '...':", extractedKeywords); //Sprawdzam w konsoli czy cos mam
+    setKeywords(extractedKeywords);
   };
-
-  const handleEditableTextChange = (event) => {
-    UEditText(event.target.value); //aktualizacja tekstu
-  };
-
-  //Zapis pliku do formatu doxc ()
-  const Zapis_Pliku = async () => {
-    if (!selectedFile) {
-      // Dodaj tutaj logikę obsługi błędu, np. wyświetl komunikat o błędzie
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const arrayBuffer = event.target.result;
-      const uint8Array = new Uint8Array(arrayBuffer);
-      const zip = new PizZip(uint8Array);
-
-      // Aktualizuj zawartość dokumentu
-
-      // Utwórz nowy obiekt Docxtemplater
-      const doc = new Docxtemplater(zip, {
-        paragraphLoop: true,
-        linebreaks: true,
-      });
-
-      // Ustaw zaktualizowane dane do szablonu
-      // doc.setData({
-      //   content: EdycjaText, // Twoja zaktualizowana zawartość
-      // });
-
-      // Renderuj dokument
-      doc.render({ content: EdycjaText });
-
-      // Pobierz bufor zaktualizowanego dokumentu
-      const buffer = doc.getZip().generate({ type: "uint8array" });
-
-      // Utwórz Blob z bufora
-      const blob = new Blob([buffer], {
-        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      });
-
-      // Zapisz Blob jako plik DOCX
-      saveAs(blob, "updated_document.docx");
-    };
-    reader.readAsArrayBuffer(selectedFile);
-  };
-
-  const Zapis_Pliku_PDF = async () => {
-    if (!selectedFile) {
-      // Dodaj tutaj logikę obsługi błędu, np. wyświetl komunikat o błędzie
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const arrayBuffer = event.target.result;
-      const uint8Array = new Uint8Array(arrayBuffer);
-
-      // Utwórz nowy dokument PDF
-      const pdfDoc = await PDFDocument.create();
-
-      // Dodaj nową stronę do dokumentu PDF
-      const page = pdfDoc.addPage();
-
-      // Dodaj tekst do strony z użyciem czcionki standardowej Unicode
-      page.drawText(EdycjaText, {
-        x: 50,
-        y: 500,
-        font: await pdfDoc.embedFont(StandardFonts.Helvetica),
-      });
-
-      // Utwórz bufor dla zaktualizowanego dokumentu PDF
-      const pdfBytes = await pdfDoc.save();
-
-      // Utwórz Blob z bufora
-      const blob = new Blob([pdfBytes], {
-        type: "application/pdf",
-      });
-
-      // Zapisz Blob jako plik PDF
-      saveAs(blob, "updated_document.pdf");
-    };
-    reader.readAsArrayBuffer(selectedFile);
-  };
-
+//Troche format do poprawy
   return (
     <div>
-      <img src={bgImage} className="bg-img" />
-      <div className="App">
-        <header className="App-header">
-          <input type="file" onChange={handleFileChange} accept=".docx" />
-          <button onClick={handleUpload}>Załaduj</button>
+      <input type="file" onChange={onFileUpload} name="docx-reader" />
+      {docxContent && (
+        <div>
+          <h2>Wyświetlanie dokumentu DOCX:</h2> 
+          <div>{parse(docxContent)}</div>
+        </div>
+      )}
+    {/*{plainText && ( // opcja sprawdzenia jak sobie radzi zamiana na tekst
+        <div>
+          <h2>Przekonwertowany tekst z pliku DOCX:</h2>
+          <pre>{plainText}</pre>
+            </div>
+      )}*/}
+      {keywords.length > 0 && (
+        <div>
+          <h2>Wyrazy przed znacznikiem "..." :</h2>
           <div>
-            <label>
-              <textarea
-                value={EdycjaText}
-                onChange={handleEditableTextChange}
-              />
-            </label>
+            {keywords.map((keyword, index) => (
+              <div key={index}>{keyword}</div>
+            ))}
           </div>
-          <button onClick={Zapis_Pliku}>Zapisz jako DOCX</button>
-          <button onClick={Zapis_Pliku_PDF}>Zapisz jako PDF</button>
-        </header>
-      </div>
+        </div>
+      )}
     </div>
   );
 }
