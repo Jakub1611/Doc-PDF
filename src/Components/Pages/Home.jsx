@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import mammoth from "mammoth";
 import parse from "html-react-parser";
+import PizZip from 'pizzip';
+import Docxtemplater from 'docxtemplater';
+import { saveAs } from 'file-saver';
 
 function Home() {
   const [docxContent, setDocxContent] = useState(null);
@@ -38,25 +41,43 @@ function Home() {
 
     reader.readAsArrayBuffer(file);
   };
-//funkcja znajdująca słowa
+
+  // Funkcja znajdująca słowa
   const findKeywords = (text) => {
     const lines = text.split("\n");
     const extractedKeywords = [];
-//dziele na linie i szukam 
+    // Dzielę na linie i szukam
     lines.forEach((line) => {
       const index = line.indexOf("...");
       if (index !== -1) {
         const keyword = line.substring(0, index).trim();
         if (keyword !== "") {
-          extractedKeywords.push(keyword);
+          extractedKeywords.push({ word: keyword, customText: "" });
         }
       }
     });
 
-    console.log("Wyrazy przed znacznikiem '...':", extractedKeywords); //Sprawdzam w konsoli czy cos mam
+    console.log("Wyrazy przed znacznikiem '...':", extractedKeywords); // Sprawdzam w konsoli czy coś mam
     setKeywords(extractedKeywords);
   };
-//Troche format do poprawy
+
+  // Funkcja obsługująca zmianę niestandardowego tekstu
+  const handleCustomTextChanged = (index, event) => {
+    const updatedKeywords = [...keywords];
+    updatedKeywords[index].customText = event.target.value;
+    setKeywords(updatedKeywords);
+  };
+  console.log("Content of docxContent:", keywords); 
+  // Funkcja zapisująca zmiany
+
+  
+  const saveChanges = () => {
+ 
+ 
+  };
+  
+  
+
   return (
     <div>
       <input type="file" onChange={onFileUpload} name="docx-reader" />
@@ -66,20 +87,22 @@ function Home() {
           <div>{parse(docxContent)}</div>
         </div>
       )}
-    {/*{plainText && ( // opcja sprawdzenia jak sobie radzi zamiana na tekst
-        <div>
-          <h2>Przekonwertowany tekst z pliku DOCX:</h2>
-          <pre>{plainText}</pre>
-            </div>
-      )}*/}
       {keywords.length > 0 && (
         <div>
           <h2>Wyrazy przed znacznikiem "..." :</h2>
           <div>
             {keywords.map((keyword, index) => (
-              <div key={index}>{keyword}</div>
+              <div key={index}>
+                {keyword.word}:{" "}
+                <input
+                  type="text"
+                  value={keyword.customText}
+                  onChange={(event) => handleCustomTextChanged(index, event)}
+                />
+              </div>
             ))}
           </div>
+          <button onClick={saveChanges}>Zapisz</button>
         </div>
       )}
     </div>
