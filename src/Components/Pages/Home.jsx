@@ -68,15 +68,48 @@ function Home() {
     setKeywords(updatedKeywords);
   };
   console.log("Content of docxContent:", keywords); 
-  // Funkcja zapisująca zmiany
+  
 
   
   const saveChanges = () => {
- 
- 
-  };
+    // Tworzymy obiekt, w którym kluczem będzie słowo kluczowe, a wartością wprowadzony przez użytkownika tekst
+    const keywordCustomTextMap = {};
+    keywords.forEach(keyword => {
+        keywordCustomTextMap[keyword.word] = keyword.customText;
+    });
+
+    // Tworzymy zmienną przechowującą zaktualizowany dokument
+    let updatedDocument = '';
+
+    // Przechodzimy przez oryginalny tekst dokumentu, aby zachować jego strukturę
+    const lines = plainText.split("\n");
+    lines.forEach((line, lineIndex) => {
+        let updatedLine = line;
+        const indexOfEllipsis = line.indexOf("...");
+        if (indexOfEllipsis !== -1) {
+            const keyword = line.substring(0, indexOfEllipsis).trim();
+            if (keyword !== "") {
+                const customText = keywordCustomTextMap[keyword] || keyword;
+                updatedLine = updatedLine.replace("...", customText);
+            }
+        }
+        updatedDocument += updatedLine;
+        if (lineIndex !== lines.length - 1) {
+            updatedDocument += '\n';
+        }
+    });
+
+    // Tutaj możesz dodać kod do zapisywania zaktualizowanego dokumentu, np. zapisanie do pliku lub wysłanie na serwer
+    console.log("Zapisano zaktualizowany dokument:", updatedDocument);
+};
+
+
+
+
+
+
   
-  
+
 
   return (
     <div>
