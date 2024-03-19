@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "./logika.css";
 
 import Docxtemplater from "docxtemplater";
 import { saveAs } from "file-saver";
