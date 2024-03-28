@@ -4,6 +4,8 @@ import parse from "html-react-parser";
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
 import { saveAs } from 'file-saver';
+import { PDFDocument } from 'pdf-lib';
+
 
 function Home() {
   const [docxContent, setDocxContent] = useState(null);
@@ -28,7 +30,7 @@ function Home() {
 
       mammoth.extractRawText({ arrayBuffer: content })
         .then((result) => {
-          console.log("Text extracted");
+          
           setPlainText(result.value);
           findKeywords(result.value);
         })
@@ -43,23 +45,32 @@ function Home() {
   };
 
   // Funkcja znajdująca słowa
-  const findKeywords = (text) => {
-    const lines = text.split("\n");
+  const findKeywords = (html) => {
     const extractedKeywords = [];
-    // Dzielę na linie i szukam
-    lines.forEach((line) => {
-      const index = line.indexOf("...");
-      if (index !== -1) {
-        const keyword = line.substring(0, index).trim();
-        if (keyword !== "") {
-          extractedKeywords.push({ word: keyword, customText: "" });
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const elements = doc.querySelectorAll('*');
+
+    elements.forEach((element) => {
+        const text = element.textContent;
+        const regex = /(.+?)\s*\.\.\./g;
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+            const keyword = match[1].trim();
+            if (keyword !== "" && !extractedKeywords.some(item => item.word === keyword)) {
+                extractedKeywords.push({ word: keyword, customText: "" });
+            }
         }
-      }
     });
 
-    console.log("Wyrazy przed znacznikiem '...':", extractedKeywords); // Sprawdzam w konsoli czy coś mam
+    console.log("Wyrazy przed znacznikiem '...':", extractedKeywords);
     setKeywords(extractedKeywords);
-  };
+};
+
+
+
+
+
+
 
   // Funkcja obsługująca zmianę niestandardowego tekstu
   const handleCustomTextChanged = (index, event) => {
@@ -70,38 +81,42 @@ function Home() {
   console.log("Content of docxContent:", keywords); 
   
 
-  
+
+
   const saveChanges = () => {
-    // Tworzymy obiekt, w którym kluczem będzie słowo kluczowe, a wartością wprowadzony przez użytkownika tekst
     const keywordCustomTextMap = {};
     keywords.forEach(keyword => {
         keywordCustomTextMap[keyword.word] = keyword.customText;
     });
 
-    // Tworzymy zmienną przechowującą zaktualizowany dokument
-    let updatedDocument = '';
+    
+    const doc = new DOMParser().parseFromString(docxContent, 'text/html');
 
-    // Przechodzimy przez oryginalny tekst dokumentu, aby zachować jego strukturę
-    const lines = plainText.split("\n");
-    lines.forEach((line, lineIndex) => {
-        let updatedLine = line;
-        const indexOfEllipsis = line.indexOf("...");
-        if (indexOfEllipsis !== -1) {
-            const keyword = line.substring(0, indexOfEllipsis).trim();
-            if (keyword !== "") {
-                const customText = keywordCustomTextMap[keyword] || keyword;
-                updatedLine = updatedLine.replace("...", customText);
+   
+    doc.querySelectorAll('*').forEach(element => {
+        
+        element.childNodes.forEach(node => {
+         
+            if (node.nodeType === Node.TEXT_NODE && node.nodeValue.includes("...")) {
+              t
+                Object.keys(keywordCustomTextMap).forEach(keyword => {
+                    node.nodeValue = node.nodeValue.replace(new RegExp(keyword + "\\.{3}", "g"), keywordCustomTextMap[keyword]);
+                    console.log("Znaleziony tekst:", node.nodeValue);
+console.log("Zaktualizowany tekst:", node.nodeValue.replace(new RegExp(keyword + "\\.{3}", "g"), keywordCustomTextMap[keyword]));
+
+                });
             }
-        }
-        updatedDocument += updatedLine;
-        if (lineIndex !== lines.length - 1) {
-            updatedDocument += '\n';
-        }
+        });
     });
 
-    // Tutaj możesz dodać kod do zapisywania zaktualizowanego dokumentu, np. zapisanie do pliku lub wysłanie na serwer
-    console.log("Zapisano zaktualizowany dokument:", updatedDocument);
+    // Pobieramy zaktualizowany kod HTML
+    const updatedHtmlContent = doc.documentElement.outerHTML;
+    console.log("Zaktualizowany dokument HTML:", updatedHtmlContent);
+
+    // Tutaj możemy dalej przetwarzać zaktualizowany dokument, na przykład generując plik DOCX lub PDF
+    // Zaimplementujemy tę część po upewnieniu się, że zaktualizowany dokument HTML jest poprawny
 };
+
 
 
 
