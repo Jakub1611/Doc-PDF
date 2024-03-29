@@ -98,7 +98,7 @@ function Home() {
         element.childNodes.forEach(node => {
          
             if (node.nodeType === Node.TEXT_NODE && node.nodeValue.includes("...")) {
-              t
+              
                 Object.keys(keywordCustomTextMap).forEach(keyword => {
                     node.nodeValue = node.nodeValue.replace(new RegExp(keyword + "\\.{3}", "g"), keywordCustomTextMap[keyword]);
                     console.log("Znaleziony tekst:", node.nodeValue);
@@ -113,8 +113,7 @@ console.log("Zaktualizowany tekst:", node.nodeValue.replace(new RegExp(keyword +
     const updatedHtmlContent = doc.documentElement.outerHTML;
     console.log("Zaktualizowany dokument HTML:", updatedHtmlContent);
 
-    // Tutaj możemy dalej przetwarzać zaktualizowany dokument, na przykład generując plik DOCX lub PDF
-    // Zaimplementujemy tę część po upewnieniu się, że zaktualizowany dokument HTML jest poprawny
+
 };
 
 
