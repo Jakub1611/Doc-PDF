@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import mammoth from "mammoth";
 import parse from "html-react-parser";
-import PizZip from 'pizzip';
-import Docxtemplater from 'docxtemplater';
-import { saveAs } from 'file-saver';
-import { PDFDocument } from 'pdf-lib';
-
+//import PizZip from 'pizzip';
+//import { saveAs } from 'file-saver';
+//import { PDFDocument } from 'pdf-lib';
+//import { PDFViewer, Document, Page, Text, PDFDownloadLink  } from '@react-pdf/renderer';
+//import HTMLtoDOCX from "html-to-docx";
 
 function Home() {
   const [docxContent, setDocxContent] = useState(null);
@@ -83,38 +83,48 @@ function Home() {
 
 
 
-  const saveChanges = () => {
+  const saveChanges = async () => {
     const keywordCustomTextMap = {};
     keywords.forEach(keyword => {
         keywordCustomTextMap[keyword.word] = keyword.customText;
     });
 
-    
     const doc = new DOMParser().parseFromString(docxContent, 'text/html');
+    console.log(doc);
 
-   
-    doc.querySelectorAll('*').forEach(element => {
-        
-        element.childNodes.forEach(node => {
-         
-            if (node.nodeType === Node.TEXT_NODE && node.nodeValue.includes("...")) {
-              
-                Object.keys(keywordCustomTextMap).forEach(keyword => {
-                    node.nodeValue = node.nodeValue.replace(new RegExp(keyword + "\\.{3}", "g"), keywordCustomTextMap[keyword]);
-                    console.log("Znaleziony tekst:", node.nodeValue);
-console.log("Zaktualizowany tekst:", node.nodeValue.replace(new RegExp(keyword + "\\.{3}", "g"), keywordCustomTextMap[keyword]));
+    // Przetwarzamy cały tekst w dokumencie
+    const textNodes = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, null, false);
+    let currentNode;
+    while (currentNode = textNodes.nextNode()) {
+      console.log("sprawdz1")
+        Object.keys(keywordCustomTextMap).forEach(keyword => {
+            //tutaj wybor sekwencji
+         //  const regex = new RegExp(`?<=${keyword}\\s*\\.{3}`, 'gi');
+            const regex = new RegExp(`(?<=\\b${keyword}\\s*)\\.{3}`, 'g');
 
-                });
+            // Sprawdzamy, czy aktualny węzeł tekstowy zawiera sekwencję "..." po słowie kluczowym
+            if (regex.test(currentNode.nodeValue)) {
+                // Zamieniamy sekwencję "..." na niestandardowy tekst dla danego słowa kluczowego
+                console.log("sprawdz2");
+                currentNode.nodeValue = currentNode.nodeValue.replace(regex, keywordCustomTextMap[keyword]);
             }
         });
-    });
+    }
 
     // Pobieramy zaktualizowany kod HTML
     const updatedHtmlContent = doc.documentElement.outerHTML;
     console.log("Zaktualizowany dokument HTML:", updatedHtmlContent);
+   // setPdfDocument(updatedHtmlContent);
+   //const content = updatedHtmlContent;
+
+//const data = await HTMLtoDOCX(content);
+   // saveAs(data, "hello.docx");
 
 
 };
+
+
+
 
 
 
