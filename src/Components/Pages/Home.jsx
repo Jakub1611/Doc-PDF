@@ -55,14 +55,37 @@ function Home() {
     elements.forEach((element) => {
         const text = element.textContent;
         const regex = /(.+?)\s*\.\.\./g;
-       
+
+      
+        ;
+
         let match;
         while ((match = regex.exec(text)) !== null) {
             const keyword = match[1].trim();
+            
             if (keyword !== "" && !extractedKeywords.some(item => item.word === keyword)) {
                 extractedKeywords.push({ word: keyword, customText: "" });
             }
         }
+
+        const regex2 = /(.+?\/[^\/]+\/?)(?:\s*\/|$)/g
+        while ((match = regex2.exec(text)) !== null) {
+          const keyword = match[1].trim(); // Użyj match[1], aby uzyskać dopasowaną frazę z grupy przechwytującej
+          if (keyword !== "" && !extractedKeywords.some(item => item.word === keyword)) {
+              extractedKeywords.push({ word: keyword, customText: "" });
+          }
+      }
+      
+      if (extractedKeywords.length === 0) {
+          console.log("Nie znaleziono dopasowań.");
+      }
+       
+       
+      
+
+    
+
+
     });
 
     console.log("Wyrazy przed znacznikiem '...':", extractedKeywords);
@@ -99,16 +122,28 @@ console.log("Content of docxContent:", keywords);
          //  const regex = new RegExp(`?<=${keyword}\\s*\\.{3}`, 'gi');
            // const regex = new RegExp(`(?<=\\b${keyword}\\s*)\\.{3}`, 'gi');
            const regex = new RegExp(`(?<=<[^>]+>)(?:(?!<[^>]+>)(?:.|\\n))*?\\b${keyword}(?=\\s*\\.{3})|(?<=\\b${keyword}\\s*)\\.{3}`, 'gi');
-
+           const regex2 = new RegExp(`(?<=<[^>]+>)(?:(?!<[^>]+>)(?:.|\\n))*?\\b${keyword}(?=\\s*[\/]{1})|(?<=\\b${keyword}\\s*)[\/]{1}`, 'gi');
             //Sprawdzamy, czy aktualny węzeł tekstowy zawiera sekwencję "..." po słowie kluczowym
             if (regex.test(currentNode.nodeValue)) {
                 
                 console.log("sprawdz2");
                 currentNode.nodeValue = currentNode.nodeValue.replace(regex, keywordCustomTextMap[keyword]);
             }
+
+            if (regex2.test(currentNode.nodeValue)) {
+                
+              console.log("sprawdz2");
+              currentNode.nodeValue = currentNode.nodeValue.replace(regex2, keywordCustomTextMap[keyword]);
+          }
+
+
+
+
         });
     }
 
+
+    
     const updatedHtmlContent = doc.documentElement.outerHTML;
     console.log("Zaktualizowany dokument HTML:", updatedHtmlContent);
 
