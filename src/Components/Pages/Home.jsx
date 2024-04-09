@@ -18,32 +18,46 @@ function Home() {
     let file = event.target.files[0];
 
     reader.onload = (e) => {
-      console.log("File loaded");
-      const content = e.target.result;
-      mammoth.convertToHtml({ arrayBuffer: content })
-        .then((result) => {
-          setDocxContent(result.value);
-        })
-        .catch((err) => {
-          console.error("Error converting DOCX to HTML:", err); // zabezpieczenie
-        });
+        console.log("File loaded");
+        const content = e.target.result;
 
-      mammoth.extractRawText({ arrayBuffer: content })
-        .then((result) => {
-          
-          setPlainText(result.value);
-          findKeywords(result.value);
-        })
-        .catch((err) => {
-          console.error("Error extracting plain text from DOCX:", err);
-        });
+        mammoth.convertToHtml({ arrayBuffer: content })
+            .then((result) => {
+                setDocxContent(result.value);
+            })
+            .catch((err) => {
+                console.error("Error converting DOCX to HTML:", err); // zabezpieczenie
+            });
+
+        mammoth.extractRawText({ arrayBuffer: content })
+            .then((result) => {
+                setPlainText(result.value);
+        
+                findKeywords(result.value);
+            })
+            .catch((err) => {
+                console.error("Error extracting plain text from DOCX:", err);
+            });
     };
 
     reader.onerror = (err) => console.error(err);
 
     reader.readAsArrayBuffer(file);
-  };
+};
+
+
+
+
   // Funkcja znajdująca słowa
+
+
+
+
+
+
+
+
+
 
 
   const findKeywords = (html) => {

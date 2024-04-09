@@ -51,12 +51,13 @@ body {
 }
 
 .cont {
-  width: 25vw;
+  width: fit-content;
   background-color: white;
   padding: 30px;
   border: 1px solid rgb(0, 0, 0);
   border-radius: 25px;
   box-shadow: 4px 4px 20px black;
+
 }
 
 .znacz {
